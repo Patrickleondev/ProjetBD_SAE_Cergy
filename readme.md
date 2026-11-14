@@ -11,7 +11,7 @@ sql/03_tests_contraintes.sql  48 tests des contraintes (aucune donnée modifiée
 reseau/serveur-java/     serveur applicatif, Java 17 + JDBC (projet Maven NetBeans)
   dist/                  serveur déjà compilé + pilote PostgreSQL, prêt à lancer
 reseau/client-python/    client réseau : une borne simulée, Python 3
-web/                     site PHP (en cours)
+web/                     site PHP : connexion, espace client, réseau, incidents, chiffres
 ```
 
 ## 1. Base de données
@@ -89,3 +89,31 @@ netcat n'est pas livré avec Windows : `scoop install netcat`, ou `ncat` fourni 
 nc 127.0.0.1 5000          netcat en client, face au serveur Java
 nc -l -p 5000              netcat en serveur, pour lire ce qu'envoie borne.py
 ```
+
+## 7. Site web (PHP)
+
+PHP 7.4 ou plus, avec l'extension `pgsql`. Le site se connecte à la même base que le serveur Java.
+
+1. Copier `web/app/config.exemple.php` en `web/app/config.local.php` et y mettre les accès à la base (ce fichier n'est pas versionné).
+2. En local : `php -S localhost:8000 -t web`, puis ouvrir http://localhost:8000.
+3. Sur un serveur Apache : déposer le contenu de `web/` dans le dossier publié. `web/app/.htaccess` interdit l'accès direct au code, et chaque fichier de `app/` s'arrête s'il est appelé seul.
+
+Comptes de démonstration (mot de passe `Voltoise2026!`, haché en bcrypt dans `compte_web`) :
+
+| Identifiant | Rôle | Ce qu'il voit |
+|---|---|---|
+| `claire.martin` | client particulier | ses badges (bloquer, réactiver), ses charges et leur paiement par carte |
+| `transports.durand` | client entreprise | la même chose, avec le montant en attente de la facture mensuelle |
+| `admin.voltoise` | gestionnaire | l'état des bornes, les incidents (déclarer, clore), les chiffres du mois |
+
+| Fichier | Rôle |
+|---|---|
+| `connexion.php`, `deconnexion.php` | authentification (bcrypt, session régénérée, 5 essais puis 60 s d'attente) |
+| `espace.php` | client : UPDATE `badge.actif`, SELECT de ses charges avec le montant calculé |
+| `reseau.php` | gestionnaire : SELECT des bornes, UPDATE `borne.etat` (jamais une borne en charge) |
+| `incidents.php` | gestionnaire : INSERT d'un incident, UPDATE pour le clore, en transaction avec l'état de la borne |
+| `statistiques.php` | gestionnaire : requêtes d'agrégats (GROUP BY), imbriquées (NOT EXISTS), héritage |
+| `app/db.php` | connexion et requêtes, uniquement avec `pg_query_params` |
+| `app/securite.php` | session, rôles, jeton CSRF |
+| `app/vue.php` | échappement HTML, formats français, gabarit des pages |
+| `app/donnees/*.php` | toutes les requêtes SQL, une fonction par question |

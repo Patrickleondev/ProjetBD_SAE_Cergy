@@ -10,6 +10,7 @@
 # jamais de mot de passe ni de fichier compilé par l'IDE
 serveur.properties
 config.ini
+config.local.php
 target/
 __pycache__/
 *.bak
