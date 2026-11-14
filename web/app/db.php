@@ -19,6 +19,13 @@ function db()
             throw new BaseIndisponible('connexion PostgreSQL impossible');
         }
         pg_set_client_encoding($cnx, 'UTF8');
+        // étape 5 de la fiche de M. Lemaire : fermer la connexion, à la fin de chaque page
+        register_shutdown_function(function () use (&$cnx) {
+            if ($cnx !== null) {
+                pg_close($cnx);
+                $cnx = null;
+            }
+        });
     }
     return $cnx;
 }
