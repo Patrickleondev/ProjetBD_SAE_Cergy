@@ -1,0 +1,13 @@
+# Configuration du serveur applicatif.
+# Copier ce fichier en « serveur.properties » et remplir le mot de passe.
+# Le vrai serveur.properties n'est jamais envoyé sur GitHub (.gitignore).
+port=5000
+
+# base locale (PostgreSQL 18, port 5433)
+db.url=jdbc:postgresql://localhost:5433/voltoise
+db.user=postgres
+db.password=A_REMPLIR
+
+# en salle de TP, remplacer par la base de l'intranet :
+# db.url=jdbc:postgresql://<serveur_bd>:5432/<nom_de_la_base>
+# db.user=<identifiant>

@@ -1,0 +1,17 @@
+# Liste blanche : on ignore tout, puis on autorise seulement le code et le SQL.
+/*
+!/.gitignore
+!/.gitattributes
+!/readme.md
+!/sql/
+!/reseau/
+!/web/
+
+# jamais de mot de passe ni de fichier compilé par l'IDE
+serveur.properties
+config.ini
+target/
+__pycache__/
+*.bak
+*.class
+build/
