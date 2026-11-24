@@ -117,3 +117,26 @@ Comptes de démonstration (mot de passe `Voltoise2026!`, haché en bcrypt dans `
 | `app/securite.php` | session, rôles, jeton CSRF |
 | `app/vue.php` | échappement HTML, formats français, gabarit des pages |
 | `app/donnees/*.php` | toutes les requêtes SQL, une fonction par question |
+
+### Déployer sur un serveur accessible seulement en sftp
+
+Certains serveurs web d'hébergement refusent `ssh` et n'acceptent que `sftp`. Le dossier publié se trouve alors **sur ce serveur**, pas dans le dossier personnel du poste de travail : on prépare les fichiers en local, puis on les envoie.
+
+```bash
+chmod -R o+rX web                       # le serveur web doit pouvoir lire les fichiers
+sftp <login>@<serveur_web>
+```
+```
+cd public_html
+put -rp web voltoise                    # -r : tout le dossier, -p : garder les droits
+bye
+```
+Pour mettre à jour un seul fichier : `put -p web/app/bootstrap.php voltoise/app/bootstrap.php`.
+
+### Trouver la cause d'une erreur 500
+
+Le site écrit le détail des erreurs dans le journal d'Apache, souvent illisible sur un hébergement partagé. Pour le voir à l'écran, le temps de corriger :
+
+1. dans `app/config.local.php`, mettre `'debug' => true` ;
+2. renvoyer ce fichier et recharger la page : sous « Une erreur est survenue », le message exact s'affiche (par exemple `RuntimeException : SQL : ERROR: ...`), avec le fichier et la ligne ;
+3. une fois corrigé, remettre `'debug' => false` et renvoyer le fichier. Un site en démonstration n'affiche jamais ses erreurs.

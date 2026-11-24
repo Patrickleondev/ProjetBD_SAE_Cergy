@@ -51,7 +51,11 @@ set_exception_handler(function ($e) {
     if ($e instanceof BaseIndisponible) {
         page_erreur(503, 'La base de données ne répond pas', 'Réessayez dans un instant.');
     }
-    page_erreur(500, 'Une erreur est survenue', 'Le détail a été enregistré dans le journal du serveur.');
+    // en mode debug, on affiche le détail : sur devweb, le journal d'Apache n'est pas lisible
+    $detail = !empty($GLOBALS['config']['debug'])
+        ? get_class($e) . ' : ' . $e->getMessage() . ' (' . basename($e->getFile()) . ', ligne ' . $e->getLine() . ')'
+        : 'Le détail a été enregistré dans le journal du serveur.';
+    page_erreur(500, 'Une erreur est survenue', $detail);
 });
 
 // La base est en UTF-8 : une saisie dans un autre encodage est refusée ici, avec un message,
