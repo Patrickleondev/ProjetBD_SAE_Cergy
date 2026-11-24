@@ -5,8 +5,10 @@ defined('VOLTOISE') or exit;
 
 // Montant d'une charge, calculé comme le serveur Java : énergie × prix du kWh
 // + minutes × prix de la minute, au tarif du client. Le montant n'est pas stocké.
+// ::numeric : avant PostgreSQL 14, EXTRACT renvoie un double precision, et ROUND(x, 2)
+// n'existe pas pour ce type (« function round(double precision, integer) does not exist »).
 const SQL_MONTANT = "ROUND(sc.energie_kwh * t.prix_kwh
-    + EXTRACT(EPOCH FROM (sc.fin - sc.debut)) / 60 * t.prix_minute, 2)";
+    + EXTRACT(EPOCH FROM (sc.fin - sc.debut))::numeric / 60 * t.prix_minute, 2)";
 
 // L'héritage décide du type : une ligne dans PARTICULIER ou dans ENTREPRISE.
 function fiche_client($id_client)

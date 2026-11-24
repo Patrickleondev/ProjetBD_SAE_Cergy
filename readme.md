@@ -92,7 +92,7 @@ nc -l -p 5000              netcat en serveur, pour lire ce qu'envoie borne.py
 
 ## 7. Site web (PHP)
 
-PHP 7.4 ou plus, avec l'extension `pgsql`. Le site se connecte à la même base que le serveur Java.
+PHP 7.4 ou plus, avec l'extension `pgsql`. Le site se connecte à la même base que le serveur Java. Les requêtes marchent aussi avec un PostgreSQL antérieur à la version 14 : les durées calculées par `EXTRACT(EPOCH ...)` sont converties en `numeric` avant `ROUND(..., 2)`.
 
 1. Copier `web/app/config.exemple.php` en `web/app/config.local.php` et y mettre les accès à la base (ce fichier n'est pas versionné).
 2. En local : `php -S localhost:8000 -t web`, puis ouvrir http://localhost:8000.

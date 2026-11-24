@@ -33,7 +33,7 @@ ORDER BY energie_kwh DESC;
 --     tables : client, badge, session_charge, tarif
 SELECT sc.id_session, sc.debut::date AS jour, sc.energie_kwh, t.libelle_tarif AS tarif,
        ROUND(sc.energie_kwh * t.prix_kwh
-             + EXTRACT(EPOCH FROM (sc.fin - sc.debut)) / 60 * t.prix_minute, 2) AS montant_eur
+             + EXTRACT(EPOCH FROM (sc.fin - sc.debut))::numeric / 60 * t.prix_minute, 2) AS montant_eur
 FROM client c
 JOIN badge b           ON b.id_client  = c.id_client
 JOIN session_charge sc ON sc.id_badge  = b.id_badge
@@ -125,7 +125,7 @@ HAVING COUNT(sc.id_session) >= ALL (SELECT COUNT(sc2.id_session)
 --      héritage (table fille entreprise) + agrégat ; tables : entreprise, badge, session_charge, tarif, client
 SELECT e.raison_sociale, e.siret, COUNT(sc.id_session) AS nb_charges,
        ROUND(SUM(sc.energie_kwh * t.prix_kwh
-                 + EXTRACT(EPOCH FROM (sc.fin - sc.debut)) / 60 * t.prix_minute), 2) AS a_facturer_eur
+                 + EXTRACT(EPOCH FROM (sc.fin - sc.debut))::numeric / 60 * t.prix_minute), 2) AS a_facturer_eur
 FROM entreprise e
 JOIN client c          ON c.id_client = e.id_client
 JOIN tarif t           ON t.id_tarif  = c.id_tarif
