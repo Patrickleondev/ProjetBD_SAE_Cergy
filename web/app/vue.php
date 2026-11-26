@@ -202,8 +202,6 @@ function pied()
 </main>
 <footer class="pied">
   <img src="assets/img/cy.png" alt="CY Cergy Paris Université" width="96" height="32">
-  <p>Voltoise est un projet étudiant de SAÉ bases de données et réseau, L3 Informatique.
-     Les clients, badges et charges affichés sont des données de démonstration.</p>
 </footer>
 </body>
 </html>

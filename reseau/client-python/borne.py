@@ -6,6 +6,7 @@
 """
 import argparse
 import random
+import re
 import socket
 import sys
 import time
@@ -81,14 +82,46 @@ def charge_complete(borne, id_badge):
     borne.envoyer("BYE")
 
 
+# Format de chaque commande, le même que celui que le serveur vérifie.
+# Une commande hors protocole n'est pas envoyée : pour tester le serveur avec des erreurs, on passe par netcat.
+FORMATS = {
+    "HELLO": (r"[A-Z]{3}-\d{2}-B\d{2}", "HELLO <code_borne>, ex. HELLO CGY-01-B01"),
+    "TARIF": (None, "TARIF"),
+    "START": (r"\d{1,9}", "START <id_badge>, un entier"),
+    "STOP": (r"\d{1,3}(\.\d{1,3})?", "STOP <energie_kwh>, de 0 à 300, ex. STOP 12.5"),
+    "PAYE": (r"\d{1,9} CB-[0-9A-Z-]{4,16}", "PAYE <id_session> CB-<reference>"),
+    "STATUS": (r"libre|hors_service|maintenance", "STATUS libre|hors_service|maintenance"),
+    "BYE": (None, "BYE"),
+}
+
+
+def verifier(ligne):
+    """Renvoie None si la commande respecte le protocole, sinon le format attendu."""
+    commande, _, reste = ligne.partition(" ")
+    if commande not in FORMATS:
+        return "commande inconnue : " + ", ".join(FORMATS)
+    motif, usage = FORMATS[commande]
+    if motif is None:
+        return None if not reste else usage
+    if not re.fullmatch(motif, reste):
+        return usage
+    if commande == "STOP" and float(reste) > 300:
+        return usage
+    return None
+
+
 def interactif(borne):
     print("commandes : HELLO, START, STOP, PAYE, TARIF, STATUS, BYE (ligne vide pour quitter)")
     while True:
-        ligne = input("> ").strip()
+        ligne = " ".join(input("> ").split())
         if not ligne:
             break
+        erreur = verifier(ligne)
+        if erreur:
+            print("non envoyé :", erreur)
+            continue
         borne.envoyer(ligne)
-        if ligne.upper() == "BYE":
+        if ligne == "BYE":
             break
 
 

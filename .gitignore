@@ -6,6 +6,8 @@
 !/sql/
 !/reseau/
 !/web/
+!/docs/
+!/lancer_en_local/
 
 # jamais de mot de passe ni de fichier compilé par l'IDE
 serveur.properties
@@ -16,3 +18,7 @@ __pycache__/
 *.bak
 *.class
 build/
+pgdata/
+postgres.log
+serveur-local.properties
+essai.properties

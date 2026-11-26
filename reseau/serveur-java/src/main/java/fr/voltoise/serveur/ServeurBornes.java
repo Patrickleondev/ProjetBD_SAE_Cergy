@@ -2,6 +2,7 @@ package fr.voltoise.serveur;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.BindException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.time.LocalTime;
@@ -40,6 +41,10 @@ public class ServeurBornes {
                 int numero = compteurDialogues.incrementAndGet();
                 pool.submit(new DialogueBorne(socket, numero));
             }
+        } catch (BindException e) {
+            // un autre programme (souvent un serveur deja lance) occupe le port
+            log("port " + port + " deja utilise : arreter l'autre serveur ou changer port= dans " + fichier);
+            System.exit(1);
         }
     }
 

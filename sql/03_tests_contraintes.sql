@@ -1,4 +1,4 @@
--- Tests des contraintes du script 01_creation.sql (version 4).
+-- Tests des contraintes du script 01_creation.sql.
 -- psql -d voltoise -f 03_tests_contraintes.sql
 -- Chaque test s'exécute dans une transaction annulée : la base n'est pas modifiée.
 -- Résultat attendu : une ligne « OK » par test (REFUSÉ quand il doit l'être, ACCEPTÉ sinon).
@@ -79,7 +79,7 @@ SELECT pg_temp.essai(t.nom, t.req, t.ok) AS resultat FROM (VALUES
  -- tarifs et comptes web
  ('prix au kWh nul',         $q$UPDATE tarif SET prix_kwh = 0 WHERE id_tarif = 1$q$, FALSE),
  ('tarif fini avant de commencer', $q$UPDATE tarif SET date_fin = '2023-06-01' WHERE id_tarif = 1$q$, FALSE),
- ('mot de passe en clair',   $q$UPDATE compte_web SET hash_mdp = 'Voltoise2026!' WHERE id_compte = 1$q$, FALSE),
+ ('mot de passe en clair',   $q$UPDATE compte_web SET hash_mdp = 'MotDePasseEnClair' WHERE id_compte = 1$q$, FALSE),
  ('gestionnaire rattaché à un client', $q$UPDATE compte_web SET id_client = 2 WHERE id_compte = 1$q$, FALSE),
  ('login avec espace',       $q$UPDATE compte_web SET login = 'claire martin' WHERE id_compte = 2$q$, FALSE)
 ) AS t(nom, req, ok);

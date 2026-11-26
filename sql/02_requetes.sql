@@ -1,6 +1,5 @@
--- Voltoise : les 10 questions des utilisateurs, et leurs requêtes SELECT (version 4)
+-- Voltoise : les 10 questions des utilisateurs, et leurs requêtes SELECT
 -- psql -U postgres -p 5433 -d voltoise -f 02_requetes.sql
--- La version 2 est conservée dans versions/v2/sql/.
 
 -- Q1. (client) « Je suis à Cergy : quelles bornes sont libres en ce moment,
 --     et quelles prises proposent-elles ? »
@@ -65,20 +64,7 @@ JOIN station s ON s.id_station = b.id_station
 WHERE NOT EXISTS (SELECT 1 FROM incident i WHERE i.id_borne = b.id_borne)
 ORDER BY b.code_borne;
 
--- Q6. (technicien) « Quels incidents sont encore ouverts, du plus grave au moins grave,
---     depuis combien d'heures, et la borne est-elle encore utilisable ? »
---     tables : incident, borne, station
-SELECT i.id_incident, b.code_borne, s.nom_station AS station, i.gravite,
-       FLOOR(EXTRACT(EPOCH FROM (LOCALTIMESTAMP - i.date_signalement)) / 3600)
-           AS heures_ouvert,
-       b.etat AS etat_borne
-FROM incident i
-JOIN borne b   ON b.id_borne   = i.id_borne
-JOIN station s ON s.id_station = b.id_station
-WHERE i.date_resolution IS NULL
-ORDER BY i.gravite DESC, i.date_signalement;
-
--- Q7. (gestionnaire) « Quelles charges ont délivré plus d'énergie que la moyenne ? »
+-- Q6. (gestionnaire) « Quelles charges ont délivré plus d'énergie que la moyenne ? »
 --     requête imbriquée dans le WHERE, agrégat ; tables : session_charge, borne
 SELECT sc.id_session, b.code_borne, sc.debut, sc.energie_kwh
 FROM session_charge sc
@@ -86,7 +72,7 @@ JOIN borne b ON b.id_borne = sc.id_borne
 WHERE sc.energie_kwh > (SELECT AVG(energie_kwh) FROM session_charge WHERE statut = 'terminee')
 ORDER BY sc.energie_kwh DESC;
 
--- Q8. (service client) « Quelles entreprises ont au moins un badge bloqué,
+-- Q7. (service client) « Quelles entreprises ont au moins un badge bloqué,
 --     et quelle est la taille de leur flotte ? »
 --     héritage (table fille entreprise) + requête imbriquée IN ; tables : entreprise, client, badge
 SELECT e.raison_sociale, e.siret, e.nb_vehicules, c.email
@@ -95,7 +81,7 @@ JOIN client c ON c.id_client = e.id_client
 WHERE e.id_client IN (SELECT id_client FROM badge WHERE NOT actif)
 ORDER BY e.raison_sociale;
 
--- Q9. (marketing) « Quels particuliers ont un badge actif qui n'a encore jamais servi ? »
+-- Q8. (marketing) « Quels particuliers ont un badge actif qui n'a encore jamais servi ? »
 --     héritage (table fille particulier) + NOT EXISTS ; tables : particulier, client, badge, session_charge
 SELECT p.civilite, c.nom, c.prenom, b.code_rfid, b.date_activation
 FROM particulier p
@@ -105,8 +91,8 @@ WHERE b.actif
   AND NOT EXISTS (SELECT 1 FROM session_charge sc WHERE sc.id_badge = b.id_badge)
 ORDER BY c.nom;
 
--- Q10. (direction) « Quel tarif est le plus utilisé, en nombre de charges et en kWh ? »
---      agrégats, GROUP BY, requête imbriquée >= ALL ; tables : tarif, client, badge, session_charge
+-- Q9. (direction) « Quel tarif est le plus utilisé, en nombre de charges et en kWh ? »
+--     agrégats, GROUP BY, requête imbriquée >= ALL ; tables : tarif, client, badge, session_charge
 SELECT t.libelle_tarif, COUNT(sc.id_session) AS nb_charges, SUM(sc.energie_kwh) AS energie_kwh
 FROM tarif t
 JOIN client c          ON c.id_tarif  = t.id_tarif
@@ -119,7 +105,7 @@ HAVING COUNT(sc.id_session) >= ALL (SELECT COUNT(sc2.id_session)
                                     JOIN session_charge sc2 ON sc2.id_badge = b2.id_badge
                                     GROUP BY c2.id_tarif);
 
--- Q11. (comptabilité) « Combien faut-il facturer à chaque entreprise pour ses charges
+-- Q10. (comptabilité) « Combien faut-il facturer à chaque entreprise pour ses charges
 --      pas encore payées ? »  C'est la facture mensuelle : elle n'existe QUE pour le
 --      sous-type ENTREPRISE (un particulier paie à la borne).
 --      héritage (table fille entreprise) + agrégat ; tables : entreprise, badge, session_charge, tarif, client

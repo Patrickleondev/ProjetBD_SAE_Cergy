@@ -2,14 +2,18 @@
 
 Réseau de bornes de recharge. Projet de SAÉ BD & réseau, L3 Informatique.
 
+> **Note :** ce dépôt est public. Les données sensibles sont volontairement absentes ou remplacées par `<...>` : logins de l'intranet, mots de passe (base et comptes de démonstration), adresses IP des postes, noms des bases et des membres de l'équipe. Les fichiers de configuration réels (`serveur.properties`, `web/app/config.local.php`) ne sont jamais versionnés : seuls leurs modèles `.exemple` le sont. Sur les photos de `docs/photos/`, l'IP, le login et la barre d'adresse sont floutés.
+
+Documentation : `docs/Rapport_SAE_BD_reseau.pdf` (rapport sans page de garde), `docs/fiches/` (fiches de travail et de révision), `docs/photos/` (tests du 24/11/2026 en salle de TP).
+
 ## Arborescence
 
 ```
 sql/01_creation.sql      DDL (types ENUM, 11 tables métier + compte_web) + jeu de données
 sql/02_requetes.sql      les 10 questions des utilisateurs et leurs requêtes SELECT
-sql/03_tests_contraintes.sql  48 tests des contraintes (aucune donnée modifiée)
-reseau/serveur-java/     serveur applicatif, Java 17 + JDBC (projet Maven NetBeans)
-  dist/                  serveur déjà compilé + pilote PostgreSQL, prêt à lancer
+sql/03_tests_contraintes.sql  53 tests des contraintes (aucune donnée modifiée)
+reseau/serveur-java/     serveur applicatif Java + JDBC, compilé pour Java 17 (projet Maven NetBeans)
+  dist/                  serveur déjà compilé + pilote postgresql-42.7.4.jar, prêt à lancer
 reseau/client-python/    client réseau : une borne simulée, Python 3
 web/                     site PHP : connexion, espace client, réseau, incidents, chiffres
 ```
@@ -47,7 +51,7 @@ Sans NetBeans (salle de TP) : `sh reseau/serveur-java/dist/lancer_serveur.sh`. A
 cd reseau/client-python
 python borne.py CGY-01-B01                charge complète automatique
 python borne.py CGY-01-B02 --badge 4      badge bloqué
-python borne.py CGY-01-B01 -i             mode interactif
+python borne.py CGY-01-B01 -i             mode interactif (chaque commande est vérifiée avant l'envoi)
 ```
 
 ## 4. Protocole
@@ -68,9 +72,9 @@ Toute commande autre que `HELLO` ou `BYE` avant l'identification reçoit `ERR 40
 
 `TARIF` ne répond pas la même chose selon le moment : borne libre, tarif public ; charge en cours, tarif de l'abonnement du client.
 
-**Le paiement dépend de l'héritage** (v4) : après `STOP`, le serveur regarde si le titulaire du badge est dans `PARTICULIER` ou dans `ENTREPRISE`. Particulier : réponse `CB`, la borne encaisse par carte puis envoie `PAYE`. Entreprise : réponse `FACTURE`, rien à payer à la borne, la charge va sur la facture mensuelle (question Q11).
+**Le paiement dépend de l'héritage** : après `STOP`, le serveur regarde si le titulaire du badge est dans `PARTICULIER` ou dans `ENTREPRISE`. Particulier : réponse `CB`, la borne encaisse par carte puis envoie `PAYE`. Entreprise : réponse `FACTURE`, rien à payer à la borne, la charge va sur la facture mensuelle (question Q10).
 
-## 5. Robustesse prévue
+## 5. Robustesse
 
 | Situation | Comportement du serveur |
 |---|---|
@@ -80,6 +84,7 @@ Toute commande autre que `HELLO` ou `BYE` avant l'identification reçoit `ERR 40
 | deux `START` en même temps sur une borne | `SELECT ... FOR UPDATE`, un seul passe |
 | base arrêtée | `ERR 503`, le serveur continue d'accepter |
 | erreur SQL | `ERR 500`, le détail reste dans le log serveur |
+| port 5000 déjà pris au lancement | message « port 5000 deja utilise », arrêt propre |
 
 ## 6. Tester avec netcat
 
@@ -92,13 +97,13 @@ nc -l -p 5000              netcat en serveur, pour lire ce qu'envoie borne.py
 
 ## 7. Site web (PHP)
 
-PHP 7.4 ou plus, avec l'extension `pgsql`. Le site se connecte à la même base que le serveur Java. Les requêtes marchent aussi avec un PostgreSQL antérieur à la version 14 : les durées calculées par `EXTRACT(EPOCH ...)` sont converties en `numeric` avant `ROUND(..., 2)`.
+PHP avec l'extension `pgsql` (testé avec PHP 8.5.12 en local et le PHP de devweb.etu). Le site se connecte à la même base que le serveur Java. Les requêtes marchent aussi avec un PostgreSQL antérieur à la version 14 : les durées calculées par `EXTRACT(EPOCH ...)` sont converties en `numeric` avant `ROUND(..., 2)`.
 
 1. Copier `web/app/config.exemple.php` en `web/app/config.local.php` et y mettre les accès à la base (ce fichier n'est pas versionné).
 2. En local : `php -S localhost:8000 -t web`, puis ouvrir http://localhost:8000.
 3. Sur un serveur Apache : déposer le contenu de `web/` dans le dossier publié. `web/app/.htaccess` interdit l'accès direct au code, et chaque fichier de `app/` s'arrête s'il est appelé seul.
 
-Comptes de démonstration (mot de passe `Voltoise2026!`, haché en bcrypt dans `compte_web`) :
+Comptes de démonstration (le mot de passe est communiqué à part ; il est haché en bcrypt dans `compte_web`) :
 
 | Identifiant | Rôle | Ce qu'il voit |
 |---|---|---|

@@ -1,10 +1,8 @@
--- Voltoise, réseau de bornes de recharge : script de création (version 4)
--- v4 : l'héritage CLIENT -> PARTICULIER / ENTREPRISE décide du mode de paiement
---      (particulier : carte bancaire à la borne ; entreprise : facture mensuelle) ;
---      la colonne client.type_client, redondante avec l'héritage, est supprimée.
+-- Voltoise, réseau de bornes de recharge : script de création
+-- L'héritage CLIENT -> PARTICULIER / ENTREPRISE décide du mode de paiement
+-- (particulier : carte bancaire à la borne ; entreprise : facture mensuelle).
 -- DDL puis jeu de données initial.
 -- psql -U postgres -p 5433 -d voltoise -f 01_creation.sql
--- La version 2 (19 tables) est conservée dans versions/v2/sql/.
 
 DROP TABLE IF EXISTS incident, session_charge, equiper, connecteur, borne, station,
     badge, entreprise, particulier, compte_web, client, tarif CASCADE;
@@ -297,7 +295,7 @@ INSERT INTO incident (date_signalement, gravite, description, date_resolution, i
     ('2026-10-07 14:00:00', 'mineur',   'Lecteur de badge à remplacer (maintenance planifiée)', NULL,              8),
     ('2026-10-07 16:45:00', 'majeur',   'Trappe de la prise Type 2 bloquée en position ouverte', NULL,             6);
 
--- mots de passe de démonstration : « Voltoise2026! », haché par password_hash() de PHP
+-- mots de passe de démonstration (communiqués à part), hachés par password_hash() de PHP
 INSERT INTO compte_web (login, hash_mdp, role, id_client) VALUES
     ('admin.voltoise',    '$2y$12$PZMb/nXjn0aAGbIx9M37.OZiq.qKpNQax4CDvWx7bKqInsTW2vj/i', 'gestionnaire', NULL),
     ('claire.martin',     '$2y$12$J2Q8poXZyOTDU9yEhkbQyeEwUR9T66wHrPE9.US.6lZtcKf4QOYWy', 'client', 1),
